@@ -20,7 +20,7 @@ class TerminalAssistant:
             Generate a Linux bash command based on this request: {user_request}
             Return a JSON object with two fields:
             - "command": the exact command to run
-            - "explanation": a brief explanation of what the command does
+            - "explanation": a concise explanation of what the command. If there are additional flags and arguments, explain them one by one
             Return only the exact JSON object, no markdown formatting, no backticks, no extra text.
             Example: {{"command": "ls -la", "explanation": "Lists all files including hidden ones in long format"}}
             """
@@ -35,15 +35,12 @@ class TerminalAssistant:
             )
             
             full_response = response.choices[0].message.content.strip()
-            print("Raw response:", repr(full_response))  # Debug print
             
             # Extract JSON after </think> tag
             if '</think>' in full_response:
                 json_str = full_response.split('</think>')[-1].strip()
             else:
                 json_str = full_response
-                
-            print("JSON string:", repr(json_str))  # Debug print
             
             try:
                 # Remove any leading/trailing whitespace or quotes
@@ -51,20 +48,16 @@ class TerminalAssistant:
                 response_data = json.loads(json_str)
                 
                 if not isinstance(response_data, dict):
-                    print(f"Unexpected response format: {type(response_data)}")
                     return None
                 
                 command = response_data.get("command")
                 explanation = response_data.get("explanation")
                 
                 if not command or not explanation:
-                    print("Missing required fields in response")
                     return None
                 
                 return command, explanation
             except (json.JSONDecodeError, KeyError) as e:
-                print(f"Error parsing response: {e}")
-                print(f"Attempted to parse: {json_str}")
                 return None
             
         except Exception as e:
